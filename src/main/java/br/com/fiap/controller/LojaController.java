@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import br.com.fiap.business.LojaBusiness;
+import br.com.fiap.exception.ResponseBusinessException;
 import br.com.fiap.model.LojaModel;
 import br.com.fiap.repository.LojaRepository;
 
@@ -25,6 +27,9 @@ import br.com.fiap.repository.LojaRepository;
 public class LojaController {
 	@Autowired
 	public LojaRepository repository;
+	
+	@Autowired
+	public LojaBusiness lojaBusiness;
 	
 	@GetMapping()
 	public ResponseEntity<List<LojaModel>> findAll() {
@@ -41,9 +46,11 @@ public class LojaController {
 	}
 	
 	@PostMapping()
-	public ResponseEntity save(@RequestBody @Valid LojaModel lojaModel) {
+	public ResponseEntity save(@RequestBody @Valid LojaModel lojaModel) throws ResponseBusinessException {
 		
-		LojaModel loja = repository.save(lojaModel);
+		LojaModel loja = lojaBusiness.applyBusiness(lojaModel);
+		
+		repository.save(loja);
 		
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
 				.buildAndExpand(loja.getId()).toUri();
@@ -52,10 +59,13 @@ public class LojaController {
 	}
 	
 	@PutMapping("/{id}")
-	public ResponseEntity update(@PathVariable("id") long id, @RequestBody @Valid LojaModel lojaModel) {
+	public ResponseEntity update(@PathVariable("id") long id, @RequestBody @Valid LojaModel lojaModel) throws ResponseBusinessException {
+	
+		LojaModel loja = lojaBusiness.applyBusiness(lojaModel);
 		
 		lojaModel.setId(id);
-		repository.save(lojaModel);
+		
+		repository.save(loja);
 		
 		return ResponseEntity.ok().build();
 	}
